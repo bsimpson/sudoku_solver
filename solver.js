@@ -1,6 +1,5 @@
 var Sudoku = function() {
   var tiles = [],
-      tries = 0,
       lastNumberSolved = 0;
 
 
@@ -44,8 +43,9 @@ var Sudoku = function() {
     for (var x=1; x < 10; x++) {
       for (var y=1; y < 10; y++) {
         if (getTileByRowAndColumn(x,y).element.value == "") {
-          calculateByRowColumnAndQuadrant(x, y);
-          calculateByInferrence(x, y);
+          var tile = getTileByRowAndColumn(x, y);
+          calculateByRowColumnAndQuadrant(tile);
+          calculateByInferrence(tile);
         }
       }
     }
@@ -63,9 +63,11 @@ var Sudoku = function() {
   * @description Calculates a value by looking at 1-9 and subtracting any numbers that already
       appear in the same row, column, or quadrant since each of these is unique
   */
-  function calculateByRowColumnAndQuadrant(row, column) {
-    var pool = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
-    var known = [];
+  function calculateByRowColumnAndQuadrant(tile) {
+    var pool = ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
+        known = [],
+        row = tile.row,
+        column = tile.column;
 
     var rowValues = valuesFromRow(row);
     for (var z=0; z < rowValues.length; z++) {
@@ -98,27 +100,44 @@ var Sudoku = function() {
     }
   }
 
+  function getOtherRowsInSameQuadrant(tile) {
+    var rows = [];
+
+    if (tile.row <= 3) {
+      rows = [1,2,3];
+    } else if ( tile.row > 3 && tile.row <= 6) {
+      rows = [4,5,6];
+    } else if ( tile.row > 6) {
+      rows = [7,8,9];
+    }
+
+    return rows;
+  }
+
+  function getOtherColumnsInSameQuadrant(tile) {
+    var columns = [];
+
+    if (tile.column <=3) {
+      columns = [1,2,3];
+    } else if (tile.column > 3 && tile.column <= 6) {
+      columns = [4,5,6];
+    } else if (tile.column > 6) {
+      columns = [7,8,9];
+    }
+
+    return columns;
+  }
+
   /*
   * @description Takes a tile and compares its possible values with other possible values
   *   from the same quadrant, looking for a unique possibility
   */
-  function calculateByInferrence(row, column) {
-    var rows = [], columns = [], quadrant = [];
-    if (row <= 3) {
-      rows = [1,2,3];
-    } else if ( row > 3 && row <= 6) {
-      rows = [4,5,6];
-    } else if ( row > 6) {
-      rows = [7,8,9];
-    }
-
-    if (column <=3) {
-      columns = [1,2,3];
-    } else if (column > 3 && column <= 6) {
-      columns = [4,5,6];
-    } else if (column > 6) {
-      columns = [7,8,9];
-    }
+  function calculateByInferrence(tile) {
+    var row = tile.row,
+        column = tile.column,
+        rows = getOtherRowsInSameQuadrant(row),
+        columns = getOtherColumnsInSameQuadrant(column),
+        quadrant = [];
 
     for (row in rows) {
       for (column in columns) {
@@ -246,22 +265,10 @@ var Sudoku = function() {
   * @returns Values from the same quadrant
   */
   function valuesFromQuadrant(row, column) {
-    var rows = [], columns = [], collection = [];
-    if (row <= 3) {
-      rows = [1,2,3];
-    } else if ( row > 3 && row <= 6) {
-      rows = [4,5,6];
-    } else if ( row > 6) {
-      rows = [7,8,9];
-    }
-
-    if (column <=3) {
-      columns = [1,2,3];
-    } else if (column > 3 && column <= 6) {
-      columns = [4,5,6];
-    } else if (column > 6) {
-      columns = [7,8,9];
-    }
+    var tile = getTileByRowAndColumn(row, column),
+        rows = getOtherRowsInSameQuadrant(tile),
+        columns = getOtherColumnsInSameQuadrant(tile),
+        collection = [];
 
     for (var x=0; x < rows.length; x++) {
       for (var y=0; y < columns.length; y++) {
