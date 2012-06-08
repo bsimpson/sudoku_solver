@@ -4,7 +4,10 @@ var Sudoku = function() {
       lastNumberSolved = 0;
 
 
-  // Constructor function for a tile
+  /*
+  * @description Constructor function for a Tile
+  * @returns Tile
+  */
   function Tile(row_id, column_id) {
     this.row = row_id;
     this.column = column_id;
@@ -17,7 +20,9 @@ var Sudoku = function() {
     return this;
   }
 
-  // Draws tiles, and wraps each row inside of a div for formatting purposes
+  /*
+  * @description Draws tiles, and wraps each row inside of a div for formatting purposes
+  */
   function drawGrid() {
     var form = document.getElementsByTagName('form')[0];
     for (var x=1; x < 10; x++) {
@@ -32,6 +37,9 @@ var Sudoku = function() {
     }
   }
 
+  /*
+  * @description Iterates through each tile and applies known algorithms to determine value
+  */
   function solve() {
     for (var x=1; x < 10; x++) {
       for (var y=1; y < 10; y++) {
@@ -51,6 +59,10 @@ var Sudoku = function() {
     }
   }
 
+  /*
+  * @description Calculates a value by looking at 1-9 and subtracting any numbers that already
+      appear in the same row, column, or quadrant since each of these is unique
+  */
   function calculateByRowColumnAndQuadrant(row, column) {
     var pool = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
     var known = [];
@@ -71,7 +83,7 @@ var Sudoku = function() {
     }
 
     // TODO uniq
-          
+
     // Remove known numbers from the pool
     for (var z=0; z < known.length; z++) {
       var position = pool.indexOf(known[z]);
@@ -80,13 +92,16 @@ var Sudoku = function() {
       }
     }
 
-
     if (pool.length == 1) {
       // solvable
       getTileByRowAndColumn(row, column).element.value = pool[0];
     }
   }
 
+  /*
+  * @description Takes a tile and compares its possible values with other possible values
+  *   from the same quadrant, looking for a unique possibility
+  */
   function calculateByInferrence(row, column) {
     var rows = [], columns = [], quadrant = [];
     if (row <= 3) {
@@ -111,7 +126,7 @@ var Sudoku = function() {
         var y = columns[column];
 
         if (getTileByRowAndColumn(x,y).element.value == "") {
-          
+
           var pool = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
           var known = [];
           var rowValues = valuesFromRow(x);
@@ -130,7 +145,7 @@ var Sudoku = function() {
           }
 
           // TODO uniq
-          
+
           // Remove known numbers from the pool
           for (var z=0; z < known.length; z++) {
             var position = pool.indexOf(known[z]);
@@ -176,6 +191,10 @@ var Sudoku = function() {
     }
   }
 
+  /*
+  * @description Retrieve a Tile with a given row and column
+  * @returns Tile
+  */
   function getTileByRowAndColumn(row_id, column_id) {
     for (tile in tiles) {
       if ((tiles[tile].row == row_id) && (tiles[tile].column == column_id)) {
@@ -184,7 +203,10 @@ var Sudoku = function() {
     }
   }
 
-  // Returns an array of tile element's values that are not empty
+  /*
+  * @description Returns an array of tile element's values that are not empty
+  * @returns {Array} Value that are not empty
+  */
   function getValuesFromTiles(collection) {
     var results = [];
     for (tile in collection) {
@@ -195,6 +217,10 @@ var Sudoku = function() {
     return results;
   }
 
+  /*
+  * @description Iterates over the other tiles in the same row
+  * @returns Values from the same row
+  */
   function valuesFromRow(row) {
     var collection = [];
     for (var x=1; x < 10; x++) {
@@ -203,6 +229,10 @@ var Sudoku = function() {
     return getValuesFromTiles(collection);
   }
 
+  /*
+  * @description Iterates over the other tiles in the same column
+  * @returns Values from the same column
+  */
   function valuesFromColumn(column) {
     var collection = [];
     for (var x=1; x < 10; x++) {
@@ -211,6 +241,10 @@ var Sudoku = function() {
     return getValuesFromTiles(collection);
   }
 
+  /*
+  * @description Iterates over the other tiles in the same quadrant
+  * @returns Values from the same quadrant
+  */
   function valuesFromQuadrant(row, column) {
     var rows = [], columns = [], collection = [];
     if (row <= 3) {
@@ -238,6 +272,9 @@ var Sudoku = function() {
     return getValuesFromTiles(collection);
   }
 
+  /*
+  * @description Event listeners for the demo
+  */
   function setListeners() {
     document.getElementById('submit').addEventListener('click', solve);
     document.getElementById('populate').addEventListener('click', populate);
@@ -257,6 +294,11 @@ var Sudoku = function() {
     }
   }
 
+  /*
+  * @description Populate loads an existing Sudoku puzzle for solving
+  *   The format of the seed is [row, column, value]
+  *   Blank tiles do not need to be specified
+  */
   function populate() {
     // "Easy"
     var seed = [
@@ -292,9 +334,7 @@ var Sudoku = function() {
       [9,8,7]
     ];
 
-    for (var x=0; x < seed.length; x++) {
-      getTileByRowAndColumn(seed[x][0], seed[x][1]).element.value = seed[x][2];
-    }
+    populateSeed(seed);
   }
 
   function populateExtreme() {
@@ -327,6 +367,10 @@ var Sudoku = function() {
       [9,9,4]
     ];
 
+    populateSeed(seed);
+  }
+
+  function populateSeed(seed) {
     for (var x=0; x < seed.length; x++) {
       getTileByRowAndColumn(seed[x][0], seed[x][1]).element.value = seed[x][2];
     }
