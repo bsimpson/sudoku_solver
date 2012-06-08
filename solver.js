@@ -100,34 +100,6 @@ var Sudoku = function() {
     }
   }
 
-  function getOtherRowsInSameQuadrant(tile) {
-    var rows = [];
-
-    if (tile.row <= 3) {
-      rows = [1,2,3];
-    } else if ( tile.row > 3 && tile.row <= 6) {
-      rows = [4,5,6];
-    } else if ( tile.row > 6) {
-      rows = [7,8,9];
-    }
-
-    return rows;
-  }
-
-  function getOtherColumnsInSameQuadrant(tile) {
-    var columns = [];
-
-    if (tile.column <=3) {
-      columns = [1,2,3];
-    } else if (tile.column > 3 && tile.column <= 6) {
-      columns = [4,5,6];
-    } else if (tile.column > 6) {
-      columns = [7,8,9];
-    }
-
-    return columns;
-  }
-
   /*
   * @description Takes a tile and compares its possible values with other possible values
   *   from the same quadrant, looking for a unique possibility
@@ -234,6 +206,42 @@ var Sudoku = function() {
       }
     }
     return results;
+  }
+
+  /*
+  * @description Calculate the rows for the quadrant that contains the tile
+  * @returns {Array} Rows
+  */
+  function getOtherRowsInSameQuadrant(tile) {
+    var rows = [];
+
+    if (tile.row <= 3) {
+      rows = [1,2,3];
+    } else if ( tile.row > 3 && tile.row <= 6) {
+      rows = [4,5,6];
+    } else if ( tile.row > 6) {
+      rows = [7,8,9];
+    }
+
+    return rows;
+  }
+
+  /*
+  * @description Calculate the columns for the quadrant that contains the tile
+  * @returns {Array} Columns
+  */
+  function getOtherColumnsInSameQuadrant(tile) {
+    var columns = [];
+
+    if (tile.column <=3) {
+      columns = [1,2,3];
+    } else if (tile.column > 3 && tile.column <= 6) {
+      columns = [4,5,6];
+    } else if (tile.column > 6) {
+      columns = [7,8,9];
+    }
+
+    return columns;
   }
 
   /*
