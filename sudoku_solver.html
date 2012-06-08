@@ -1,5 +1,6 @@
 <html>
 <title>Sudoku Solver</title>
+<link rel="stylesheet" type="text/css" href="styles.css" />
 <script type="text/javascript">
 
   function createTile(row_id, column_id) {
@@ -11,13 +12,13 @@
   }
 
   function drawGrid() {
-    var body = document.getElementsByTagName('form')[0];
-    var options = {};
+    var form = document.getElementsByTagName('form')[0];
     for (var x=1; x < 10; x++) {
+      var row = document.createElement('div');
       for (var y=1; y < 10; y++) {
-        body.appendChild(createTile(x, y));
+        row.appendChild(createTile(x, y));
       }
-      body.appendChild(document.createElement('div'));
+      form.appendChild(row);
     }
   }
 

@@ -1,0 +1,29 @@
+body {
+  margin-left: auto;
+  margin-right: auto;
+  width: 500px;
+  text-align: center;
+}
+
+form {
+  text-align: center;
+}
+
+form input {
+  margin: 2px;
+  padding: 2px;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #ccc;
+  font-size: 200%;
+  color: #555;
+  text-align: center;
+}
+
+form div input:nth-child(3n) {
+  margin-right: 10px;
+}
+
+form div:nth-child(3n) {
+  margin-bottom: 10px;
+}
