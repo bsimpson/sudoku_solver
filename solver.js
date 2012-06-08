@@ -1,6 +1,8 @@
 var Sudoku = function() {
   var tiles = [],
-      tries = 0;
+      tries = 0,
+      lastNumberSolved = 0;
+
 
   // Constructor function for a tile
   function Tile(row_id, column_id) {
@@ -8,6 +10,8 @@ var Sudoku = function() {
     this.column = column_id;
     this.element = document.createElement('input');
     this.element.setAttribute('size', 1);
+    this.element.setAttribute('maxlength', 1);
+    this.element.setAttribute('tabIndex', tiles.length+1);
 
     tiles.push(this);
     return this;
@@ -29,30 +33,21 @@ var Sudoku = function() {
   }
 
   function solve() {
-    tries++;
     for (var x=1; x < 10; x++) {
       for (var y=1; y < 10; y++) {
-        var input = getTileByRowAndColumn(x,y).element;
-
-        if (input.value == "") {
-          calculateByRowColumnAndQuadrant(x,y);
-          calculateByInferrence(x,y);
+        if (getTileByRowAndColumn(x,y).element.value == "") {
+          calculateByRowColumnAndQuadrant(x, y);
+          calculateByInferrence(x, y);
         }
       }
     }
 
     // recursion
-    var collection = document.getElementsByTagName('input');
-    var values = [];
-    for (var x=0; x < collection.length; x++) {
-      values.push(collection[x].value);
-    }
-    if (values.indexOf("") != -1) {
-      if (tries < 10) {
-        setTimeout(solve, 500); 
-      } else {
-        tries = 0;
-      }
+    var numberSolved = getValuesFromTiles(tiles).length;
+
+    if ((numberSolved != lastNumberSolved) && (numberSolved < tiles.length)) {
+      lastNumberSolved = numberSolved;
+      solve();
     }
   }
 
@@ -189,14 +184,12 @@ var Sudoku = function() {
     }
   }
 
-  function getValuesFromInputs(collection) {
+  // Returns an array of tile element's values that are not empty
+  function getValuesFromTiles(collection) {
     var results = [];
-    for (var x=0; x < collection.length; x++) {
-      if (collection[x] != undefined) {
-        var value = collection[x].value;
-        if (value && value != "") {
-          results.push(value);
-        }
+    for (tile in collection) {
+      if ((value = collection[tile].element.value) != "") {
+        results.push(value);
       }
     }
     return results;
@@ -205,17 +198,17 @@ var Sudoku = function() {
   function valuesFromRow(row) {
     var collection = [];
     for (var x=1; x < 10; x++) {
-      collection.push(getTileByRowAndColumn(row, x).element);
+      collection.push(getTileByRowAndColumn(row, x));
     }
-    return getValuesFromInputs(collection);
+    return getValuesFromTiles(collection);
   }
 
   function valuesFromColumn(column) {
     var collection = [];
     for (var x=1; x < 10; x++) {
-      collection.push(getTileByRowAndColumn(x, column).element);
+      collection.push(getTileByRowAndColumn(x, column));
     }
-    return getValuesFromInputs(collection);
+    return getValuesFromTiles(collection);
   }
 
   function valuesFromQuadrant(row, column) {
@@ -238,16 +231,30 @@ var Sudoku = function() {
 
     for (var x=0; x < rows.length; x++) {
       for (var y=0; y < columns.length; y++) {
-        collection.push(getTileByRowAndColumn(rows[x], columns[y]).element);
+        collection.push(getTileByRowAndColumn(rows[x], columns[y]));
       }
     }
 
-    return getValuesFromInputs(collection);
+    return getValuesFromTiles(collection);
   }
 
   function setListeners() {
     document.getElementById('submit').addEventListener('click', solve);
     document.getElementById('populate').addEventListener('click', populate);
+    for (tile in tiles) {
+      tiles[tile].element.addEventListener('keyup', advance);
+    }
+    tiles[0].element.focus();
+  }
+
+  function advance() {
+    if (this.value != "") {
+      for (tile in tiles) {
+        if (tiles[tile].element.tabIndex == this.tabIndex+1) {
+          tiles[tile].element.focus();
+        }
+      }
+    }
   }
 
   function populate() {
@@ -331,12 +338,10 @@ var Sudoku = function() {
   }
 
   return {
-    init: init,
-    tiles: tiles,
-    getTileByRowAndColumn: getTileByRowAndColumn
+    init: init
   };
 }
 
 window.onload = function() { 
-  //new Sudoku().init();
+  new Sudoku().init();
 };
