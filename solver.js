@@ -44,7 +44,12 @@ var Sudoku = function() {
       for (var y=1; y < 10; y++) {
         if (getTileByRowAndColumn(x,y).element.value == "") {
           var tile = getTileByRowAndColumn(x, y);
-          calculateByRowColumnAndQuadrant(tile);
+
+          var pool = calculateByRowColumnAndQuadrant(tile);
+          if (pool.length == 1) { // solvable
+            tile.element.value = pool[0];
+          }
+
           calculateByInferrence(tile);
         }
       }
@@ -62,6 +67,7 @@ var Sudoku = function() {
   /*
   * @description Calculates a value by looking at 1-9 and subtracting any numbers that already
       appear in the same row, column, or quadrant since each of these is unique
+  * @returns {Array} pool of possible values
   */
   function calculateByRowColumnAndQuadrant(tile) {
     var pool = ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
@@ -94,10 +100,7 @@ var Sudoku = function() {
       }
     }
 
-    if (pool.length == 1) {
-      // solvable
-      getTileByRowAndColumn(row, column).element.value = pool[0];
-    }
+    return pool;
   }
 
   /*
@@ -107,48 +110,21 @@ var Sudoku = function() {
   function calculateByInferrence(tile) {
     var row = tile.row,
         column = tile.column,
-        rows = getOtherRowsInSameQuadrant(row),
-        columns = getOtherColumnsInSameQuadrant(column),
+        rows = getOtherRowsInSameQuadrant(tile),
+        columns = getOtherColumnsInSameQuadrant(tile),
         quadrant = [];
 
     for (row in rows) {
       for (column in columns) {
         var x = rows[row];
         var y = columns[column];
+        var tile = getTileByRowAndColumn(x, y);
 
-        if (getTileByRowAndColumn(x,y).element.value == "") {
-
-          var pool = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
-          var known = [];
-          var rowValues = valuesFromRow(x);
-          for (var z=0; z < rowValues.length; z++) {
-            known.push(rowValues[z]);
-          }
-
-          var columnValues = valuesFromColumn(y);
-          for (var z=0; z < columnValues.length; z++) {
-             known.push(columnValues[z]);
-          }
-
-          var quadrantValues = valuesFromQuadrant(x,y);
-          for (var z=0; z < quadrantValues.length; z++) {
-            known.push(quadrantValues[z]);
-          }
-
-          // TODO uniq
-
-          // Remove known numbers from the pool
-          for (var z=0; z < known.length; z++) {
-            var position = pool.indexOf(known[z]);
-            if (position != -1) {
-              pool.splice(position, 1);
-            }
-          }
-
+        if (tile.element.value == "") {
+          var pool = calculateByRowColumnAndQuadrant(tile);
           // pool populated with options
-          quadrant.push([x, y, pool]);
-
-        } // if
+          quadrant.push({pool: pool, tile: tile});
+        }
       }
     }
 
@@ -156,26 +132,30 @@ var Sudoku = function() {
     populateTilesWithDistinctResults(quadrant);
   }
 
-  // quadrant is [row, column, [values]]
-  function populateTilesWithDistinctResults(quadrant){
+  // quadrant is [{pool: [pool], tile: Tile}, ...]
+  function populateTilesWithDistinctResults(quadrant) {
     var mapOfValues = [];
 
+    // Combine all the values together to prepare for a frequency count
     for (tile in quadrant) {
-      for (value in quadrant[tile][2]) {
-        mapOfValues.push(quadrant[tile][2][value]);
+      for (value in quadrant[tile].pool) {
+        mapOfValues.push(quadrant[tile].pool[value]);
       }
     }
 
-    var countFrequency = {"1":0, "2":0, "3":0, "4":0, "5":0, "6":0, "7":0, "8":0, "9":0};
+    var countFrequency = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9": 0};
     for (number in mapOfValues) {
       countFrequency[mapOfValues[number]]++;
     }
 
+    // Look at each number 1..9
     for (key in countFrequency) {
+      // If the frequency is 1 then it is solvable, since it is unique
       if (countFrequency[key] == 1) {
+        // Find the tile that has this value in its pool
         for (tile in quadrant) {
-          if (quadrant[tile][2].indexOf(key) != -1) {
-            getTileByRowAndColumn(quadrant[tile][0], quadrant[tile][1]).element.value = key;
+          if (quadrant[tile].pool.indexOf(key) != -1) {
+            quadrant[tile].tile.element.value = key;
           }
         }
       }
@@ -397,10 +377,15 @@ var Sudoku = function() {
   }
 
   return {
-    init: init
+    init: init,
+    calculateByInferrence: calculateByInferrence,
+    calculateByRowColumnAndQuadrant: calculateByRowColumnAndQuadrant,
+    tiles: tiles,
+    populateExtreme: populateExtreme,
+    solve: solve
   };
 }
 
 window.onload = function() { 
-  new Sudoku().init();
+  //new Sudoku().init();
 };
